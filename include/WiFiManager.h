@@ -7,19 +7,19 @@
 #include "ConfigManager.h"
 
 class WiFiManager {
-public:
+  public:
     WiFiManager(ConfigManager& config);
     void begin();
     void handle();
     bool isConnected();
 
-private:
+  private:
     ConfigManager& configManager;
     DNSServer dnsServer;
-    bool apMode;
+    bool _apMode;
 
-    void startAP();
-    void startSTA(const String& ssid, const String& password);
+    void _startAP();
+    void _startSTA(const String& ssid, const String& password);
 };
 
 #endif

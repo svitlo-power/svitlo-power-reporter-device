@@ -1,9 +1,8 @@
 #ifndef __CONFIG_H__
 #define __CONFIG_H__
 
-const char *ssid = "SvitloPower";
-const char *pw = "SvitloPower";
-
-#define CLIENT_COUNT 4
+#define FW_VERSION "0.8.1"
+#define FS_VERSION "0.8.1"
+#define OTA_MANIFEST_URL "https://svitlo-power.pp.ua/ota/ota_manifest.json"
 
 #endif

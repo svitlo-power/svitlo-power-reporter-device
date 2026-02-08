@@ -7,16 +7,15 @@
 #include "ConfigManager.h"
 
 class WebServerManager {
-public:
+  public:
     WebServerManager(ConfigManager& config);
     bool begin();
     void stop();
 
-private:
+  private:
     AsyncWebServer server;
     ConfigManager& configManager;
-
-    void setupRoutes();
+    void _setupRoutes();
 };
 
 #endif

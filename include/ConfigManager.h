@@ -5,7 +5,7 @@
 #include <Preferences.h>
 
 class ConfigManager {
-public:
+  public:
     ConfigManager();
     bool begin();
     String getWifiSSID();
@@ -13,8 +13,8 @@ public:
     void setWifiCredentials(const String& ssid, const String& password);
     void clear();
 
-private:
-    Preferences preferences;
+  private:
+    Preferences _preferences;
 };
 
 #endif

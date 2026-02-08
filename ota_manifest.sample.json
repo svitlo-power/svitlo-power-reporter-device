@@ -1,0 +1,6 @@
+{
+    "version": "1.0.0",
+    "url": "https://svitlo-power.pp.ua/ota/firmware.bin",
+    "fs_version": "1.0.0",
+    "fs_url": "https://svitlo-power.pp.ua/ota/littlefs.bin"
+}
