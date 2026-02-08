@@ -1,6 +1,7 @@
 #include "WebServerManager.h"
 #include <ArduinoJson.h>
 #include <WiFi.h>
+#include "config.h"
 
 WebServerManager::WebServerManager(ConfigManager& config) : server(80), configManager(config) {}
 
@@ -20,6 +21,15 @@ void WebServerManager::stop() {
 }
 
 void WebServerManager::_setupRoutes() {
+  server.on("/api/app", HTTP_GET, [](AsyncWebServerRequest *request) {
+    StaticJsonDocument<128> doc;
+    doc["appVer"] = FW_VERSION;
+    doc["fsVer"] = FS_VERSION;
+    String response;
+    serializeJson(doc, response);
+    request->send(200, "application/json", response);
+  });
+
   server.on("/api/wifi", HTTP_POST, [](AsyncWebServerRequest *request) {}, NULL, 
     [this](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
       StaticJsonDocument<200> doc;

@@ -1,25 +1,38 @@
-import { useState } from 'react'
-import './App.css'
+import { Provider } from 'react-redux'
+import { Header, SettingsForm } from './components'
+import { store, useAppDispatch } from './stores/store'
+import { useEffect } from 'react'
+import { fetchAppData } from './stores/thunks';
 
-function App() {
-  const [count, setCount] = useState(0)
+function AppComponent() {
+  const dispatch = useAppDispatch();
+  useEffect(() => {
+    dispatch(fetchAppData());
+  }, []);
 
   return (
-    <>
-      <h1>Svitlo Power V1.0.1</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.tsx</code> and save to test HMR
-        </p>
+    <Provider store={store}>
+      <div style={{
+        display: 'flex',
+        flexDirection: 'column',
+        minHeight: '100vh',
+        background: 'var(--bg)'
+      }}>
+        <Header name="Svitlo Power Reporter Device" />
+        <main style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
+          <SettingsForm />
+        </main>
+        <footer style={{
+          padding: '1.5rem',
+          textAlign: 'center',
+          color: 'var(--text-dimmed)',
+          fontSize: '0.875rem'
+        }}>
+          &copy; {new Date().getFullYear()} Svitlo Power. All rights reserved.
+        </footer>
       </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
+    </Provider>
   )
 }
 
-export default App
+export const App = () => <Provider store={store}><AppComponent /></Provider>
