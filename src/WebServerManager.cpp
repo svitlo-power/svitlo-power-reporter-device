@@ -25,7 +25,7 @@ void WebServerManager::_setupRoutes() {
     StaticJsonDocument<128> doc;
     doc["appVer"] = FW_VERSION;
     doc["fsVer"] = FS_VERSION;
-    doc["wifi"] = configManager.getWifiSSID(); // Note: frontend uses 'wifi' but backend result had 'ssid'
+    doc["ssid"] = configManager.getWifiSSID();
     doc["token"] = configManager.getReporterToken();
     String response;
     serializeJson(doc, response);
@@ -46,15 +46,67 @@ void WebServerManager::_setupRoutes() {
       String password = doc["password"];
       String token = doc["token"];
 
-      if (ssid.length() > 0) {
+      if (ssid.length() > 0 && token.length() > 0) {
         configManager.setWifiCredentials(ssid, password);
         configManager.setReporterToken(token);
         request->send(200, "application/json", "{\"status\":\"ok\"}");
         delay(500);
         ESP.restart();
       } else {
+        request->send(400, "application/json", "{\"status\":\"error\", \"message\":\"SSID and Token are required\"}");
+      }
+  });
+
+  server.on("/api/wifi/config", HTTP_POST, [](AsyncWebServerRequest *request) {}, NULL, 
+    [this](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
+      StaticJsonDocument<200> doc;
+      DeserializationError error = deserializeJson(doc, data, len);
+
+      if (error) {
+        request->send(400, "application/json", "{\"status\":\"error\", \"message\":\"Invalid JSON\"}");
+        return;
+      }
+
+      String ssid = doc["ssid"];
+      String password = doc["password"];
+
+      if (ssid.length() > 0) {
+        configManager.setWifiCredentials(ssid, password);
+        request->send(200, "application/json", "{\"status\":\"ok\"}");
+        delay(500);
+        ESP.restart();
+      } else {
         request->send(400, "application/json", "{\"status\":\"error\", \"message\":\"SSID is required\"}");
       }
+  });
+
+  server.on("/api/token/config", HTTP_POST, [](AsyncWebServerRequest *request) {}, NULL, 
+    [this](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
+      StaticJsonDocument<128> doc;
+      DeserializationError error = deserializeJson(doc, data, len);
+
+      if (error) {
+        request->send(400, "application/json", "{\"status\":\"error\", \"message\":\"Invalid JSON\"}");
+        return;
+      }
+
+      String token = doc["token"];
+
+      if (token.length() > 0) {
+        configManager.setReporterToken(token);
+        request->send(200, "application/json", "{\"status\":\"ok\"}");
+        delay(500);
+        ESP.restart();
+      } else {
+        request->send(400, "application/json", "{\"status\":\"error\", \"message\":\"Token is required\"}");
+      }
+  });
+
+  server.on("/api/reset", HTTP_POST, [this](AsyncWebServerRequest *request) {
+    configManager.clear();
+    request->send(200, "application/json", "{\"status\":\"ok\"}");
+    delay(500);
+    ESP.restart();
   });
 
   server.on("/api/wifi/list", HTTP_GET, [this](AsyncWebServerRequest* request) {

@@ -6,12 +6,17 @@ export const appStarted = createAction("app/started");
 
 const initialState: AppState = {
   loading: true,
+  currentView: 'main',
 };
 
 const appSlice = createSlice({
   name: 'app',
   initialState: initialState,
-  reducers: {},
+  reducers: {
+    setCurrentView: (state, action: PayloadAction<AppState['currentView']>) => {
+      state.currentView = action.payload;
+    }
+  },
   extraReducers: (builder) =>
     builder
       .addCase(fetchAppData.pending, (state) => {
@@ -29,4 +34,5 @@ const appSlice = createSlice({
       })
 });
 
+export const { setCurrentView } = appSlice.actions;
 export const appReducer = appSlice.reducer;

@@ -4,4 +4,5 @@ export type AppState = {
   ssid?: string;
   token?: string;
   loading: boolean;
+  currentView: 'main' | 'wifi' | 'token';
 }
