@@ -22,11 +22,13 @@ void WebServerManager::stop() {
 
 void WebServerManager::_setupRoutes() {
   server.on("/api/app/config", HTTP_GET, [this](AsyncWebServerRequest *request) {
-    StaticJsonDocument<128> doc;
+    StaticJsonDocument<256> doc;
     doc["appVer"] = FW_VERSION;
     doc["fsVer"] = FS_VERSION;
     doc["ssid"] = configManager.getWifiSSID();
     doc["token"] = configManager.getReporterToken();
+    doc["wifiStatus"] = wifiManager.getStatus();
+    doc["wifiIp"] = wifiManager.getIP();
     String response;
     serializeJson(doc, response);
     request->send(200, "application/json", response);

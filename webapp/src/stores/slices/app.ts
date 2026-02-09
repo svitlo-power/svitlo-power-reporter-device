@@ -30,6 +30,8 @@ const appSlice = createSlice({
         state.fsVer = action.payload.fsVer;
         state.ssid = action.payload.ssid;
         state.token = action.payload.token;
+        state.wifiStatus = action.payload.wifiStatus;
+        state.wifiIp = action.payload.wifiIp;
         state.loading = false;
       })
 });

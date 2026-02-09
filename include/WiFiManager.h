@@ -13,6 +13,9 @@ class WiFiManager {
     void begin();
     void handle();
     bool isConnected();
+    String getIP();
+    String getStatus();
+    bool isAPMode();
     void requestScan();
     int getScanStatus(); 
     DynamicJsonDocument getScanResults();

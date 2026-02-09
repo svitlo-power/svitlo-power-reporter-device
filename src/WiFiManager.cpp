@@ -71,6 +71,30 @@ bool WiFiManager::isConnected() {
   return WiFi.status() == WL_CONNECTED;
 }
 
+String WiFiManager::getIP() {
+  if (_apMode) return WiFi.softAPIP().toString();
+  return WiFi.localIP().toString();
+}
+
+String WiFiManager::getStatus() {
+  if (_apMode) {
+    if (configManager.getWifiSSID().length() > 0) {
+      return "Failed (AP Mode)";
+    }
+    return "Not Configured (AP Mode)";
+  }
+  
+  if (WiFi.status() == WL_CONNECTED) {
+    return "Connected";
+  }
+  
+  return "Disconnected";
+}
+
+bool WiFiManager::isAPMode() {
+  return _apMode;
+}
+
 void WiFiManager::requestScan() {
   _scanRequested = true;
 }

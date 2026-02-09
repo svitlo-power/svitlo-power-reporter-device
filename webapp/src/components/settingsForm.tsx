@@ -8,7 +8,7 @@ import { setCurrentView } from '../stores/slices';
 export const SettingsForm: React.FC = () => {
   const dispatch = useAppDispatch();
   const { networks, loading: scanning } = useAppSelector(state => state.wifi);
-  const { ssid, token, currentView, loading: appLoading } = useAppSelector(state => state.app);
+  const { ssid, token, wifiStatus, wifiIp, currentView, loading: appLoading } = useAppSelector(state => state.app);
 
   const [ssidValue, setSsid] = useState(ssid || '');
   const [passwordValue, setPassword] = useState('');
@@ -136,7 +136,27 @@ export const SettingsForm: React.FC = () => {
 
         <div style={{ marginBottom: '2rem' }}>
           <div style={{ fontSize: '0.875rem', color: 'var(--text-dimmed)', marginBottom: '0.25rem' }}>Selected WiFi</div>
-          <div style={{ fontSize: '1.125rem', fontWeight: 600 }}>{ssid}</div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
+            <div style={{ fontSize: '1.125rem', fontWeight: 600 }}>{ssid}</div>
+            {wifiStatus && (
+              <span style={{
+                fontSize: '0.75rem',
+                padding: '2px 6px',
+                borderRadius: '4px',
+                background: wifiStatus === 'Connected' ? 'rgba(34, 197, 94, 0.1)' : 'rgba(239, 68, 68, 0.1)',
+                color: wifiStatus === 'Connected' ? '#22c55e' : '#ef4444',
+                fontWeight: 600,
+                border: `1px solid ${wifiStatus === 'Connected' ? 'rgba(34, 197, 94, 0.2)' : 'rgba(239, 68, 68, 0.2)'}`
+              }}>
+                {wifiStatus}
+              </span>
+            )}
+          </div>
+          {wifiIp && (
+            <div style={{ fontSize: '0.875rem', color: 'var(--text-dimmed)' }}>
+              IP: {wifiIp}
+            </div>
+          )}
         </div>
 
         <div className="button-stack">
