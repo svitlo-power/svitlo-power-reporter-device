@@ -4,7 +4,7 @@ export const fetchAppData = createAsyncThunk(
   'app/fetchAppData',
   async (_, thunkAPI) => {
     try {
-      const response = await fetch('/api/app', { method: 'GET' });
+      const response = await fetch('/api/app/config', { method: 'GET' });
       return response.json();
     } catch (error: unknown) {
       return thunkAPI.rejectWithValue(error || 'Failed to fetch app data');

@@ -14,7 +14,7 @@
 
 ConfigManager configMgr;
 WiFiManager wifiMgr(configMgr);
-WebServerManager serverMgr(configMgr);
+WebServerManager serverMgr(configMgr, wifiMgr);
 HttpOtaManager httpOtaMgr;
 
 const char* ntpServer = "pool.ntp.org";

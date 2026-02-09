@@ -23,6 +23,8 @@ const appSlice = createSlice({
       .addCase(fetchAppData.fulfilled, (state, action: PayloadAction<AppState>) => {
         state.appVer = action.payload.appVer;
         state.fsVer = action.payload.fsVer;
+        state.ssid = action.payload.ssid;
+        state.token = action.payload.token;
         state.loading = false;
       })
 });

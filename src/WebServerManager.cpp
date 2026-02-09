@@ -3,7 +3,7 @@
 #include <WiFi.h>
 #include "config.h"
 
-WebServerManager::WebServerManager(ConfigManager& config) : server(80), configManager(config) {}
+WebServerManager::WebServerManager(ConfigManager& config, WiFiManager& wifi) : server(80), configManager(config), wifiManager(wifi) {}
 
 bool WebServerManager::begin() {
   if (!LittleFS.begin(false, "/littlefs", 20, "littlefs")) {
@@ -21,16 +21,18 @@ void WebServerManager::stop() {
 }
 
 void WebServerManager::_setupRoutes() {
-  server.on("/api/app", HTTP_GET, [](AsyncWebServerRequest *request) {
+  server.on("/api/app/config", HTTP_GET, [this](AsyncWebServerRequest *request) {
     StaticJsonDocument<128> doc;
     doc["appVer"] = FW_VERSION;
     doc["fsVer"] = FS_VERSION;
+    doc["wifi"] = configManager.getWifiSSID(); // Note: frontend uses 'wifi' but backend result had 'ssid'
+    doc["token"] = configManager.getReporterToken();
     String response;
     serializeJson(doc, response);
     request->send(200, "application/json", response);
   });
 
-  server.on("/api/wifi", HTTP_POST, [](AsyncWebServerRequest *request) {}, NULL, 
+  server.on("/api/app/config", HTTP_POST, [](AsyncWebServerRequest *request) {}, NULL, 
     [this](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
       StaticJsonDocument<200> doc;
       DeserializationError error = deserializeJson(doc, data, len);
@@ -42,15 +44,33 @@ void WebServerManager::_setupRoutes() {
 
       String ssid = doc["ssid"];
       String password = doc["password"];
+      String token = doc["token"];
 
       if (ssid.length() > 0) {
         configManager.setWifiCredentials(ssid, password);
+        configManager.setReporterToken(token);
         request->send(200, "application/json", "{\"status\":\"ok\"}");
         delay(500);
         ESP.restart();
       } else {
         request->send(400, "application/json", "{\"status\":\"error\", \"message\":\"SSID is required\"}");
       }
+  });
+
+  server.on("/api/wifi/list", HTTP_GET, [this](AsyncWebServerRequest* request) {
+    int n = wifiManager.getScanStatus();
+    
+    if (n == -2) {
+      wifiManager.requestScan();
+      request->send(202, "application/json", "{\"status\":\"scanning\"}");
+    } else if (n == -1) {
+      request->send(202, "application/json", "{\"status\":\"scanning\"}");
+    } else {
+      DynamicJsonDocument doc = wifiManager.getScanResults();
+      String response;
+      serializeJson(doc, response);
+      request->send(200, "application/json", response);
+    }
   });
 
   server.on("/generate_204", HTTP_GET, [](AsyncWebServerRequest *request) { request->redirect("http://192.168.4.1/"); });

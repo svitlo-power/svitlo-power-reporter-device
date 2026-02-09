@@ -11,6 +11,8 @@ class ConfigManager {
     String getWifiSSID();
     String getWifiPassword();
     void setWifiCredentials(const String& ssid, const String& password);
+    String getReporterToken();
+    void setReporterToken(const String& token);
     void clear();
 
   private:
