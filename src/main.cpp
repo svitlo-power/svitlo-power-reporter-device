@@ -20,23 +20,26 @@ void setup() {
   Serial.begin(115200);
 
   if (!configMgr.begin()) {
-    Serial.println("Error initializing Preferences");
+    Serial.println("[Main] Error initializing Preferences");
   }
 
   wifiMgr.begin();
 
-  if (wifiMgr.isConnected()) {
-    configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
-    httpOtaMgr.checkForUpdates();
-  }
-
   if (!serverMgr.begin()) {
-    Serial.println("Error starting WebServer");
+    Serial.println("[Main] Error starting WebServer");
   }
 
-  Serial.println("System initialized");
+  Serial.println("[Main] System initialized");
 }
 
 void loop() {
   wifiMgr.handle();
+
+  static bool initialConfigDone = false;
+  if (wifiMgr.isConnected() && !initialConfigDone) {
+    configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
+    httpOtaMgr.checkForUpdates();
+    initialConfigDone = true;
+    Serial.println("[Main] Startup complete.");
+  }
 }

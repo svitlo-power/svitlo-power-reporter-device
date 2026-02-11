@@ -4,109 +4,127 @@
 const byte DNS_PORT = 53;
 IPAddress apIP(192, 168, 4, 1);
 
-WiFiManager::WiFiManager(ConfigManager& config) : configManager(config), _apMode(false), _scanRequested(false) {}
+WiFiManager::WiFiManager(ConfigManager& config) : configManager(config), _apMode(false), _scanRequested(false), _staConnected(false), _lastConnectionAttemptTime(0), _staConnectionTime(0) {}
 
 void WiFiManager::begin() {
+  _startAP();
+
   String ssid = configManager.getWifiSSID();
   String password = configManager.getWifiPassword();
 
-  if (ssid == "") {
-    Serial.println("No WiFi credentials found. Starting AP...");
-    _startAP();
-  } else {
-    Serial.println("Connecting to WiFi: " + ssid);
+  if (ssid != "") {
+    Serial.println("[WiFi] Configured WiFi found. Starting connection to: " + ssid);
     _startSTA(ssid, password);
+  } else {
+    Serial.println("[WiFi] No WiFi credentials found. Running in AP-only mode.");
   }
 }
 
 void WiFiManager::_startAP() {
   _apMode = true;
+
+  WiFi.mode(WIFI_AP); 
+
   WiFi.setHostname(MDNS_HOSTNAME);
-  WiFi.mode(WIFI_AP);
   WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
   WiFi.softAP("SvitloPower-Setup");
 
   dnsServer.setErrorReplyCode(DNSReplyCode::NoError);
   dnsServer.start(DNS_PORT, "*", apIP);
-  Serial.println("AP Started. IP: " + WiFi.softAPIP().toString());
+  Serial.println("[WiFi] AP Started. IP: " + WiFi.softAPIP().toString());
   
-  // Start mDNS responder in AP mode
   if (MDNS.begin(MDNS_HOSTNAME)) {
-    Serial.println("mDNS responder started in AP mode: " + String(MDNS_HOSTNAME) + ".local");
+    Serial.println("[WiFi] mDNS responder started in AP mode: " + String(MDNS_HOSTNAME) + ".local");
   } else {
-    Serial.println("Error starting mDNS responder in AP mode");
+    Serial.println("[WiFi] Error starting mDNS responder in AP mode");
   }
-  
-  // Initial scan to have results ready
+
   WiFi.scanNetworks(true);
 }
 
 void WiFiManager::_startSTA(const String& ssid, const String& password) {
-  _apMode = false;
-  WiFi.setHostname(MDNS_HOSTNAME);
-  WiFi.mode(WIFI_STA);
+  WiFi.mode(WIFI_AP_STA);
+  WiFi.setHostname(MDNS_HOSTNAME); 
+
+  Serial.println("[WiFi] Connecting to WiFi: " + ssid);
   WiFi.begin(ssid.c_str(), password.c_str());
-
-  unsigned long startAttemptTime = millis();
-  while (WiFi.status() != WL_CONNECTED && millis() - startAttemptTime < 10000) {
-    delay(500);
-    Serial.print(".");
-  }
-
-  if (WiFi.status() == WL_CONNECTED) {
-    Serial.println("\nWiFi connected. IP: " + WiFi.localIP().toString());
-    
-    if (MDNS.begin(MDNS_HOSTNAME)) {
-      Serial.println("mDNS responder started: " + String(MDNS_HOSTNAME) + ".local");
-    } else {
-      Serial.println("Error starting mDNS responder");
-    }
-  } else {
-    Serial.println("\nWiFi connection failed. Starting AP...");
-    _startAP();
-  }
+  
+  _lastConnectionAttemptTime = millis();
 }
 
 void WiFiManager::handle() {
-  if (_apMode) {
-    dnsServer.processNextRequest();
+  dnsServer.processNextRequest();
+
+  if (WiFi.status() == WL_CONNECTED) {
+    if (!_staConnected) {
+      _staConnected = true;
+      Serial.println("\n[WiFi] Connected. IP: " + WiFi.localIP().toString());
+      
+      if (MDNS.begin(MDNS_HOSTNAME)) {
+        Serial.println("[WiFi] mDNS responder updated: " + String(MDNS_HOSTNAME) + ".local");
+      }
+      
+      _staConnectionTime = millis();
+    }
+    
+    if (_apMode && millis() - _staConnectionTime > AP_SHUTDOWN_DELAY) {
+       WiFi.softAPdisconnect(true);
+       WiFi.mode(WIFI_STA);
+       _apMode = false;
+       Serial.println("[WiFi] Connected. Stopping Access Point.");
+    }
+  } else {
+    if (_staConnected) {
+      _staConnected = false;
+      Serial.println("\n[WiFi] Connection lost. Starting AP...");
+      _startAP();
+      
+      String ssid = configManager.getWifiSSID();
+      String password = configManager.getWifiPassword();
+      if (ssid != "") {
+        _staConnectionTime = 0;
+        _startSTA(ssid, password);
+      }
+    }
   }
 
   if (_scanRequested) {
-    if (WiFi.scanComplete() != -1) { // -1 means scanning in progress
+    if (WiFi.scanComplete() != -1) {
       WiFi.scanNetworks(true);
       _scanRequested = false;
-      Serial.println("WiFi Scan started in background");
+      Serial.println("[WiFi] Scan started in background");
     }
   }
 }
 
 bool WiFiManager::isConnected() {
-  return WiFi.status() == WL_CONNECTED;
+  return _staConnected;
 }
 
 String WiFiManager::getIP() {
-  if (_apMode) return WiFi.softAPIP().toString();
-  return WiFi.localIP().toString();
+  if (_staConnected) {
+    return WiFi.localIP().toString();
+  }
+  return WiFi.softAPIP().toString();
 }
 
 String WiFiManager::getStatus() {
-  if (_apMode) {
-    if (configManager.getWifiSSID().length() > 0) {
-      return "Failed (AP Mode)";
+  String status = "";
+  if (_staConnected) {
+    status = "Connected";
+  } else {
+    String ssid = configManager.getWifiSSID();
+    if (ssid != "") {
+      status = "Connecting to " + ssid;
+    } else {
+      status = "AP Mode (No Config)";
     }
-    return "Not Configured (AP Mode)";
   }
-  
-  if (WiFi.status() == WL_CONNECTED) {
-    return "Connected";
-  }
-  
-  return "Disconnected";
+  return status;
 }
 
 bool WiFiManager::isAPMode() {
-  return _apMode;
+  return (WiFi.getMode() & WIFI_MODE_AP) != 0;
 }
 
 void WiFiManager::requestScan() {

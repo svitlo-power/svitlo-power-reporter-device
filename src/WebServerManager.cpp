@@ -7,7 +7,7 @@ WebServerManager::WebServerManager(ConfigManager& config, WiFiManager& wifi) : s
 
 bool WebServerManager::begin() {
   if (!LittleFS.begin(false, "/littlefs", 20, "littlefs")) {
-    Serial.println("Error initializing LittleFS");
+    Serial.println("[Web] Error initializing LittleFS");
     return false;
   }
 
@@ -180,7 +180,7 @@ void WebServerManager::_setupRoutes() {
     }
 
     if (host != "192.168.4.1" && host != String(MDNS_HOSTNAME) + ".local") {
-      Serial.println("Captive Portal Redirect: " + request->url() + " Host: " + host);
+      Serial.println("[Web] Captive Portal Redirect: " + request->url() + " Host: " + host);
       request->redirect("http://" + String(MDNS_HOSTNAME) + ".local/");
     } else {
       request->send(404, "text/plain", "Not Found");

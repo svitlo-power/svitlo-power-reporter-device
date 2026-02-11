@@ -26,6 +26,10 @@ class WiFiManager {
     DNSServer dnsServer;
     bool _apMode;
     bool _scanRequested;
+    bool _staConnected = false;
+    unsigned long _lastConnectionAttemptTime;
+    unsigned long _staConnectionTime = 0;
+    const unsigned long AP_SHUTDOWN_DELAY = 60000;
 
     void _startAP();
     void _startSTA(const String& ssid, const String& password);
