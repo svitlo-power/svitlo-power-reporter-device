@@ -1,6 +1,6 @@
 import { Provider } from 'react-redux'
 import { Footer, Header, SettingsForm } from './components'
-import { store, useAppDispatch, useAppSelector } from './stores/store'
+import { store, useAppDispatch } from './stores/store'
 import { useEffect } from 'react'
 import { fetchAppData } from './stores/thunks';
 
