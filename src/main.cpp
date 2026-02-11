@@ -1,9 +1,4 @@
 #include <Arduino.h>
-#include <ArduinoJson.h>
-#include <ArduinoOTA.h>
-#include <esp_wifi.h>
-#include <WiFi.h>
-#include <LittleFS.h>
 #include "time.h"
 
 #include "ConfigManager.h"
@@ -21,20 +16,6 @@ const char* ntpServer = "pool.ntp.org";
 const long  gmtOffset_sec = 7200;
 const int   daylightOffset_sec = 7200;
 
-void setup_ota() {
-  ArduinoOTA
-    .onStart([]() {
-      String type;
-      if (ArduinoOTA.getCommand() == U_FLASH) {
-        type = "sketch";
-      } else {
-        type = "filesystem";
-      }
-    });
-  ArduinoOTA.begin();
-  Serial.println("OTA initialized");
-}
-
 void setup() {
   Serial.begin(115200);
 
@@ -46,7 +27,6 @@ void setup() {
 
   if (wifiMgr.isConnected()) {
     configTime(gmtOffset_sec, daylightOffset_sec, ntpServer);
-    setup_ota();
     httpOtaMgr.checkForUpdates();
   }
 
@@ -59,7 +39,4 @@ void setup() {
 
 void loop() {
   wifiMgr.handle();
-  if (wifiMgr.isConnected()) {
-    ArduinoOTA.handle();
-  }
 }

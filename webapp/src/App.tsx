@@ -18,7 +18,7 @@ function AppComponent() {
         minHeight: '100vh',
         background: 'var(--bg)'
       }}>
-        <Header name="Svitlo Power Reporter Device" />
+        <Header name="Svitlo Power Reporter" />
         <main style={{ flex: 1, display: 'flex', flexDirection: 'column' }}>
           <SettingsForm />
         </main>

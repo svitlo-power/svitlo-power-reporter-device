@@ -13,6 +13,8 @@ bool WebServerManager::begin() {
 
   _setupRoutes();
   server.begin();
+  MDNS.addService("http", "tcp", 80);
+  MDNS.setInstanceName(MDNS_HOSTNAME);
   return true;
 }
 
@@ -127,21 +129,27 @@ void WebServerManager::_setupRoutes() {
     }
   });
 
-  server.on("/generate_204", HTTP_GET, [](AsyncWebServerRequest *request) { request->redirect("http://192.168.4.1/"); });
-  server.on("/connecttest.txt", HTTP_GET, [](AsyncWebServerRequest *request) { request->redirect("http://192.168.4.1/"); });
-  server.on("/success.txt", HTTP_GET, [](AsyncWebServerRequest *request) { request->redirect("http://192.168.4.1/"); });
-  server.on("/connectivitycheck.android.com/generate_204", HTTP_GET, [](AsyncWebServerRequest *request) { request->redirect("http://192.168.4.1/"); });
-  server.on("/clients3.google.com/generate_204", HTTP_GET, [](AsyncWebServerRequest *request) { request->redirect("http://192.168.4.1/"); });
-  server.on("/connectivitycheck.gstatic.com/generate_204", HTTP_GET, [](AsyncWebServerRequest *request) { request->redirect("http://192.168.4.1/"); });
+  server.on("/api/ping", HTTP_GET, [this](AsyncWebServerRequest* request) {
+    request->send(200, "application/json", "{\"status\":\"ok\"}");
+  });
 
-  server.on("/hotspot-detect.html", HTTP_GET, [](AsyncWebServerRequest *request) { request->redirect("http://192.168.4.1/"); });
-  server.on("/canonical.html", HTTP_GET, [](AsyncWebServerRequest *request) { request->redirect("http://192.168.4.1/"); });
-  server.on("/library/test/success.html", HTTP_GET, [](AsyncWebServerRequest *request) { request->redirect("http://192.168.4.1/"); });
+  String redirectUrl = "http://" + String(MDNS_HOSTNAME) + ".local/";
+  
+  server.on("/generate_204", HTTP_GET, [redirectUrl](AsyncWebServerRequest *request) { request->redirect(redirectUrl); });
+  server.on("/connecttest.txt", HTTP_GET, [redirectUrl](AsyncWebServerRequest *request) { request->redirect(redirectUrl); });
+  server.on("/success.txt", HTTP_GET, [redirectUrl](AsyncWebServerRequest *request) { request->redirect(redirectUrl); });
+  server.on("/connectivitycheck.android.com/generate_204", HTTP_GET, [redirectUrl](AsyncWebServerRequest *request) { request->redirect(redirectUrl); });
+  server.on("/clients3.google.com/generate_204", HTTP_GET, [redirectUrl](AsyncWebServerRequest *request) { request->redirect(redirectUrl); });
+  server.on("/connectivitycheck.gstatic.com/generate_204", HTTP_GET, [redirectUrl](AsyncWebServerRequest *request) { request->redirect(redirectUrl); });
 
-  server.on("/ncsi.txt", HTTP_GET, [](AsyncWebServerRequest *request) { request->redirect("http://192.168.4.1/"); });
+  server.on("/hotspot-detect.html", HTTP_GET, [redirectUrl](AsyncWebServerRequest *request) { request->redirect(redirectUrl); });
+  server.on("/canonical.html", HTTP_GET, [redirectUrl](AsyncWebServerRequest *request) { request->redirect(redirectUrl); });
+  server.on("/library/test/success.html", HTTP_GET, [redirectUrl](AsyncWebServerRequest *request) { request->redirect(redirectUrl); });
+
+  server.on("/ncsi.txt", HTTP_GET, [redirectUrl](AsyncWebServerRequest *request) { request->redirect(redirectUrl); });
 
   server.on("/wpad.dat", [](AsyncWebServerRequest *request) { request->send(404); });
-  server.on("/redirect", [](AsyncWebServerRequest *request) { request->redirect("http://192.168.4.1/"); });
+  server.on("/redirect", [redirectUrl](AsyncWebServerRequest *request) { request->redirect(redirectUrl); });
 
   server.onNotFound([this](AsyncWebServerRequest *request) {
     String path = request->url();
@@ -171,9 +179,9 @@ void WebServerManager::_setupRoutes() {
       host = host.substring(0, portIndex);
     }
 
-    if (host != "192.168.4.1" && host != "svitlo-power-mon-device.local") {
+    if (host != "192.168.4.1" && host != String(MDNS_HOSTNAME) + ".local") {
       Serial.println("Captive Portal Redirect: " + request->url() + " Host: " + host);
-      request->redirect("http://192.168.4.1/");
+      request->redirect("http://" + String(MDNS_HOSTNAME) + ".local/");
     } else {
       request->send(404, "text/plain", "Not Found");
     }

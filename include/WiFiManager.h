@@ -5,6 +5,7 @@
 #include <WiFi.h>
 #include <DNSServer.h>
 #include <ArduinoJson.h>
+#include <ESPmDNS.h>
 #include "ConfigManager.h"
 
 class WiFiManager {

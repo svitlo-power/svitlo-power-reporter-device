@@ -1,4 +1,5 @@
 #include "WiFiManager.h"
+#include "config.h"
 
 const byte DNS_PORT = 53;
 IPAddress apIP(192, 168, 4, 1);
@@ -20,7 +21,7 @@ void WiFiManager::begin() {
 
 void WiFiManager::_startAP() {
   _apMode = true;
-  WiFi.setHostname("svitlo-power-mon-device");
+  WiFi.setHostname(MDNS_HOSTNAME);
   WiFi.mode(WIFI_AP);
   WiFi.softAPConfig(apIP, apIP, IPAddress(255, 255, 255, 0));
   WiFi.softAP("SvitloPower-Setup");
@@ -29,13 +30,20 @@ void WiFiManager::_startAP() {
   dnsServer.start(DNS_PORT, "*", apIP);
   Serial.println("AP Started. IP: " + WiFi.softAPIP().toString());
   
+  // Start mDNS responder in AP mode
+  if (MDNS.begin(MDNS_HOSTNAME)) {
+    Serial.println("mDNS responder started in AP mode: " + String(MDNS_HOSTNAME) + ".local");
+  } else {
+    Serial.println("Error starting mDNS responder in AP mode");
+  }
+  
   // Initial scan to have results ready
   WiFi.scanNetworks(true);
 }
 
 void WiFiManager::_startSTA(const String& ssid, const String& password) {
   _apMode = false;
-  WiFi.setHostname("svitlo-power-mon-device");
+  WiFi.setHostname(MDNS_HOSTNAME);
   WiFi.mode(WIFI_STA);
   WiFi.begin(ssid.c_str(), password.c_str());
 
@@ -47,6 +55,12 @@ void WiFiManager::_startSTA(const String& ssid, const String& password) {
 
   if (WiFi.status() == WL_CONNECTED) {
     Serial.println("\nWiFi connected. IP: " + WiFi.localIP().toString());
+    
+    if (MDNS.begin(MDNS_HOSTNAME)) {
+      Serial.println("mDNS responder started: " + String(MDNS_HOSTNAME) + ".local");
+    } else {
+      Serial.println("Error starting mDNS responder");
+    }
   } else {
     Serial.println("\nWiFi connection failed. Starting AP...");
     _startAP();

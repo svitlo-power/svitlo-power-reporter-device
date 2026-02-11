@@ -4,6 +4,7 @@ import { Select } from './select';
 import { useAppDispatch, useAppSelector } from '../stores/store';
 import { scanWifiNetworks, saveWifiConfig, saveTokenConfig, saveAllConfigs, resetDevice } from '../stores/thunks';
 import { setCurrentView } from '../stores/slices';
+import { pollAndRedirect } from '../utils/mdns';
 
 export const SettingsForm: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -28,30 +29,53 @@ export const SettingsForm: React.FC = () => {
 
   const handleSaveAll = async (e: React.SyntheticEvent) => {
     e.preventDefault();
-    setIsSubmitting(true);
-    await dispatch(saveAllConfigs({ ssid: ssidValue, password: passwordValue, token: tokenValue }));
-    setIsSubmitting(false);
+
+    dispatch(setCurrentView('connecting'));
+
+    dispatch(saveAllConfigs({
+      ssid: ssidValue,
+      password: passwordValue,
+      token: tokenValue,
+    }));
+
+    try {
+      await pollAndRedirect(window.location.hostname);
+    } catch (error) {
+      console.error('Failed to redirect to device:', error);
+      alert(`Device configuration saved, but automatic redirection failed. Please manually navigate to http://${window.location.hostname}`);
+    }
   };
 
   const handleSaveWifi = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    await dispatch(saveWifiConfig({ ssid: ssidValue, password: passwordValue }));
-    setIsSubmitting(false);
+    dispatch(saveWifiConfig({ ssid: ssidValue, password: passwordValue }));
+
+    try {
+      await pollAndRedirect(window.location.hostname);
+    } catch (error) {
+      console.error('Failed to redirect to device:', error);
+      alert(`WiFi configuration saved, but automatic redirection failed. Please manually navigate to http://${window.location.hostname}`);
+    }
   };
 
   const handleSaveToken = async (e: React.SyntheticEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    await dispatch(saveTokenConfig({ token: tokenValue }));
-    setIsSubmitting(false);
+    dispatch(saveTokenConfig({ token: tokenValue }));
+
+    try {
+      await pollAndRedirect(window.location.hostname);
+    } catch (error) {
+      console.error('Failed to redirect to device:', error);
+      alert(`Token configuration saved, but automatic redirection failed. Please manually navigate to http://${window.location.hostname}`);
+    }
   };
 
   const handleReset = async () => {
     if (window.confirm('Are you sure you want to reset the device? All settings will be lost.')) {
-      setIsSubmitting(true);
+      dispatch(setCurrentView('resetting'));
       await dispatch(resetDevice());
-      setIsSubmitting(false);
     }
   };
 
@@ -75,6 +99,77 @@ export const SettingsForm: React.FC = () => {
         </div>
       </div>
     )
+  }
+
+  // Connecting View
+  if (currentView === 'connecting') {
+    return (
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="glass-card" style={{ textAlign: 'center', maxWidth: '400px' }}>
+          <h2 style={{ marginBottom: '1rem' }}>Connecting to Network...</h2>
+          <p style={{ color: 'var(--text-dimmed)', marginBottom: '1.5rem' }}>
+            The device is connecting to your WiFi network. Please wait while we redirect you to the new address.
+          </p>
+          <div style={{
+            display: 'inline-block',
+            width: '40px',
+            height: '40px',
+            border: '4px solid rgba(255, 255, 255, 0.1)',
+            borderTopColor: 'var(--primary)',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite'
+          }} />
+          <style>{`
+            @keyframes spin {
+              to { transform: rotate(360deg); }
+            }
+          `}</style>
+        </div>
+      </div>
+    );
+  }
+
+  // Resetting View
+  if (currentView === 'resetting') {
+    return (
+      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className="glass-card" style={{ textAlign: 'center', maxWidth: '500px' }}>
+          <h2 style={{ marginBottom: '1rem' }}>Device Resetting...</h2>
+          <p style={{ color: 'var(--text-dimmed)', marginBottom: '1.5rem' }}>
+            The device is resetting to factory settings and will restart momentarily.
+          </p>
+          <div style={{
+            display: 'inline-block',
+            width: '40px',
+            height: '40px',
+            border: '4px solid rgba(255, 255, 255, 0.1)',
+            borderTopColor: 'var(--primary)',
+            borderRadius: '50%',
+            animation: 'spin 1s linear infinite',
+            marginBottom: '1.5rem'
+          }} />
+          <div style={{
+            background: 'rgba(59, 130, 246, 0.1)',
+            border: '1px solid rgba(59, 130, 246, 0.2)',
+            borderRadius: '8px',
+            padding: '1rem',
+            textAlign: 'left'
+          }}>
+            <div style={{ fontWeight: 600, marginBottom: '0.5rem', color: 'var(--primary)' }}>📡 Next Steps:</div>
+            <ol style={{ margin: 0, paddingLeft: '1.25rem', color: 'var(--text-dimmed)', fontSize: '0.875rem', lineHeight: '1.6' }}>
+              <li>Connect to the <strong style={{ color: 'var(--text-primary)' }}>SvitloPower-Setup</strong> WiFi network</li>
+              <li>Your browser should automatically open the setup page</li>
+              <li>If not, navigate to <strong style={{ color: 'var(--text-primary)' }}>http://{window.location.hostname}</strong></li>
+            </ol>
+          </div>
+          <style>{`
+            @keyframes spin {
+              to { transform: rotate(360deg); }
+            }
+          `}</style>
+        </div>
+      </div>
+    );
   }
 
   // Initial Setup View
