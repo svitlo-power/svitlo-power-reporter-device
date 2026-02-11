@@ -54,8 +54,7 @@ void WebServerManager::_setupRoutes() {
         configManager.setWifiCredentials(ssid, password);
         configManager.setReporterToken(token);
         request->send(200, "application/json", "{\"status\":\"ok\"}");
-        delay(500);
-        ESP.restart();
+        wifiManager.reconfigure();
       } else {
         request->send(400, "application/json", "{\"status\":\"error\", \"message\":\"SSID and Token are required\"}");
       }
@@ -77,8 +76,7 @@ void WebServerManager::_setupRoutes() {
       if (ssid.length() > 0) {
         configManager.setWifiCredentials(ssid, password);
         request->send(200, "application/json", "{\"status\":\"ok\"}");
-        delay(500);
-        ESP.restart();
+        wifiManager.reconfigure();
       } else {
         request->send(400, "application/json", "{\"status\":\"error\", \"message\":\"SSID is required\"}");
       }

@@ -20,6 +20,7 @@ class WiFiManager {
     void requestScan();
     int getScanStatus(); 
     DynamicJsonDocument getScanResults();
+    void reconfigure();
 
   private:
     ConfigManager& configManager;
@@ -29,7 +30,7 @@ class WiFiManager {
     bool _staConnected = false;
     unsigned long _lastConnectionAttemptTime;
     unsigned long _staConnectionTime = 0;
-    const unsigned long AP_SHUTDOWN_DELAY = 60000;
+    const unsigned long AP_SHUTDOWN_DELAY = 30000;
 
     void _startAP();
     void _startSTA(const String& ssid, const String& password);

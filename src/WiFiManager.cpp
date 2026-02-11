@@ -151,3 +151,21 @@ DynamicJsonDocument WiFiManager::getScanResults() {
   }
   return doc;
 }
+
+void WiFiManager::reconfigure() {
+  Serial.println("[WiFi] Reconfiguring...");
+  
+  WiFi.disconnect(); 
+  _staConnected = false;
+  _staConnectionTime = 0;
+
+  String ssid = configManager.getWifiSSID();
+  String password = configManager.getWifiPassword();
+
+  if (ssid != "") {
+    Serial.println("[WiFi] New configuration found. Connecting to: " + ssid);
+    _startSTA(ssid, password);
+  } else {
+    Serial.println("[WiFi] No WiFi credentials. Staying in AP mode.");
+  }
+}
