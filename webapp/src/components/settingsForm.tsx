@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Input } from './input';
 import { Select } from './select';
+import { ConfirmDialog } from './confirmDialog';
 import { useAppDispatch, useAppSelector } from '../stores/store';
 import { scanWifiNetworks, saveWifiConfig, saveTokenConfig, saveAllConfigs, resetDevice } from '../stores/thunks';
 import { setCurrentView } from '../stores/slices';
@@ -15,6 +16,7 @@ export const SettingsForm: React.FC = () => {
   const [passwordValue, setPassword] = useState('');
   const [tokenValue, setToken] = useState(token || '');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showResetConfirm, setShowResetConfirm] = useState(false);
 
   useEffect(() => {
     if (ssid) setSsid(ssid);
@@ -72,11 +74,10 @@ export const SettingsForm: React.FC = () => {
     }
   };
 
-  const handleReset = async () => {
-    if (window.confirm('Are you sure you want to reset the device? All settings will be lost.')) {
-      dispatch(setCurrentView('resetting'));
-      await dispatch(resetDevice());
-    }
+  const handleResetConfirm = async () => {
+    setShowResetConfirm(false);
+    dispatch(setCurrentView('resetting'));
+    await dispatch(resetDevice());
   };
 
   const wifiOptions = [
@@ -258,9 +259,19 @@ export const SettingsForm: React.FC = () => {
           <button type="button" onClick={() => dispatch(setCurrentView('wifi'))} className="btn btn-primary">Change WiFi</button>
           <button type="button" onClick={() => dispatch(setCurrentView('token'))} className="btn btn-primary">Change Token</button>
           <div className="divider" style={{ margin: '1rem 0' }} />
-          <button type="button" onClick={handleReset} className="btn btn-outline" style={{ color: '#fa5252' }}>Reset Device</button>
+          <button type="button" onClick={() => setShowResetConfirm(true)} className="btn btn-outline" style={{ color: '#fa5252' }}>Reset Device</button>
         </div>
       </div>
+
+      <ConfirmDialog
+        isOpen={showResetConfirm}
+        title="Reset Device?"
+        message="Are you sure you want to reset the device? All settings will be lost and you will need to reconfigure the device."
+        confirmLabel="Reset Device"
+        isDangerous
+        onConfirm={handleResetConfirm}
+        onCancel={() => setShowResetConfirm(false)}
+      />
     </div>
   );
 };
