@@ -11,10 +11,20 @@
 
 class HttpOtaManager {
   public:
+    enum class OtaState {
+      IDLE,
+      CHECKING,
+      UPDATING
+    };
+    typedef void (*OtaStateCallback)(OtaState state);
+
     HttpOtaManager();
     void checkForUpdates();
-
+    void setStateCallback(OtaStateCallback cb);
   private:
+    OtaStateCallback _stateCallback = nullptr;
+    void _setState(OtaState state);
+
     bool _fetchManifest(DynamicJsonDocument& doc);
     void _performUpdate(const String& url, int updateType);
     bool _otaUpdateApp(const String& url);

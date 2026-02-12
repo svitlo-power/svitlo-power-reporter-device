@@ -5,12 +5,23 @@
 
 HttpOtaManager::HttpOtaManager() {}
 
+void HttpOtaManager::setStateCallback(OtaStateCallback cb) {
+  _stateCallback = cb;
+}
+
+void HttpOtaManager::_setState(OtaState state) {
+  if (_stateCallback) {
+    _stateCallback(state);
+  }
+}
+
 void HttpOtaManager::checkForUpdates() {
   Serial.println("[OTA]  Checking for updates...");
   
   DynamicJsonDocument doc(1024);
   if (!_fetchManifest(doc)) {
     Serial.println("[OTA]  Failed to fetch manifest");
+    _setState(OtaState::IDLE);
     return;
   }
 
@@ -25,6 +36,10 @@ void HttpOtaManager::checkForUpdates() {
   bool updateFw = (newFwVersion != FW_VERSION && fwUrl.length() > 0);
   bool updateFs = (newFsVersion != FS_VERSION && fsUrl.length() > 0);
 
+  if (updateFs || updateFw) {
+    _setState(OtaState::UPDATING);
+  }
+
   if (updateFs) {
     Serial.println("[OTA]  Updating LittleFS...");
     _performUpdate(fsUrl, U_SPIFFS);
@@ -38,6 +53,8 @@ void HttpOtaManager::checkForUpdates() {
   if (!updateFw && !updateFs) {
     Serial.println("[OTA]  No updates found");
   }
+
+  _setState(OtaState::IDLE);
 }
 
 bool HttpOtaManager::_fetchManifest(DynamicJsonDocument& doc) {
