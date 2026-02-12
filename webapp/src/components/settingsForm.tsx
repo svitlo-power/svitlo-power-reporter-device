@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
+import { jwtDecode } from 'jwt-decode';
 import { Input } from './input';
+import { TextArea } from './textArea';
 import { Select } from './select';
 import { ConfirmDialog } from './confirmDialog';
 import { useAppDispatch, useAppSelector } from '../stores/store';
@@ -15,8 +17,33 @@ export const SettingsForm: React.FC = () => {
   const [ssidValue, setSsid] = useState(ssid || '');
   const [passwordValue, setPassword] = useState('');
   const [tokenValue, setToken] = useState(token || '');
+  const [tokenError, setTokenError] = useState<string | null>(null);
+  const [tokenUser, setTokenUser] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
+
+  useEffect(() => {
+    if (!tokenValue) {
+      setTimeout(() => {
+        setTokenError(null);
+        setTokenUser(null);
+      }, 1);
+      return;
+    }
+
+    try {
+      const decoded = jwtDecode<{ sub?: string }>(tokenValue);
+      setTimeout(() => {
+        setTokenUser(decoded.sub || 'Unknown');
+        setTokenError(null);
+      }, 1);
+    } catch {
+      setTimeout(() => {
+        setTokenUser(null);
+        setTokenError('Invalid token format');
+      }, 1);
+    }
+  }, [tokenValue]);
 
   useEffect(() => {
     if (ssid) setSsid(ssid);
@@ -182,9 +209,11 @@ export const SettingsForm: React.FC = () => {
           <Select label="WiFi Network" options={wifiOptions} value={ssidValue} onChange={(e) => setSsid(e.target.value)} required />
           <Input label="WiFi Password" placeholder="Enter password" type="password" value={passwordValue} onChange={(e) => setPassword(e.target.value)} required />
           <div className="divider" />
-          <Input label="Reporter Token" placeholder="Enter your device token" type="text" value={tokenValue} onChange={(e) => setToken(e.target.value)} required />
+          <TextArea label="Reporter Token" placeholder="Enter your device token" rows={5} value={tokenValue} onChange={(e) => setToken(e.target.value)} required />
+          {tokenError && <div style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '-0.75rem', marginBottom: '1rem' }}>{tokenError}</div>}
+          {tokenUser && !tokenError && <div style={{ color: 'var(--primary)', fontSize: '0.75rem', marginTop: '-0.75rem', marginBottom: '1rem' }}>User: {tokenUser}</div>}
           <div className="button-stack">
-            <button type="submit" className="btn btn-primary" disabled={scanning}>Complete Setup</button>
+            <button type="submit" className="btn btn-primary" disabled={scanning || !!tokenError || !ssidValue || !passwordValue || !tokenValue}>Complete Setup</button>
           </div>
         </form>
       </div>
@@ -200,7 +229,7 @@ export const SettingsForm: React.FC = () => {
           <Select label="WiFi Network" options={wifiOptions} value={ssidValue} onChange={(e) => setSsid(e.target.value)} required />
           <Input label="WiFi Password" placeholder="Enter password" type="password" value={passwordValue} onChange={(e) => setPassword(e.target.value)} required />
           <div className="button-stack">
-            <button type="submit" className="btn btn-primary" disabled={scanning}>Save & Restart</button>
+            <button type="submit" className="btn btn-primary" disabled={scanning || !ssidValue || !passwordValue}>Save & Restart</button>
             <button type="button" onClick={() => dispatch(setCurrentView('main'))} className="btn btn-outline">Cancel</button>
           </div>
         </form>
@@ -214,9 +243,11 @@ export const SettingsForm: React.FC = () => {
       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
         <form onSubmit={handleSaveToken} className="glass-card" style={{ width: '100%', maxWidth: '400px' }}>
           <h2 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Change Reporter Token</h2>
-          <Input label="Reporter Token" placeholder="Enter your device token" type="text" value={tokenValue} onChange={(e) => setToken(e.target.value)} required />
+          <TextArea label="Reporter Token" placeholder="Enter your device token" rows={5} value={tokenValue} onChange={(e) => setToken(e.target.value)} required />
+          {tokenError && <div style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '-0.75rem', marginBottom: '1rem' }}>{tokenError}</div>}
+          {tokenUser && !tokenError && <div style={{ color: 'var(--primary)', fontSize: '0.75rem', marginTop: '-0.75rem', marginBottom: '1rem' }}>User: {tokenUser}</div>}
           <div className="button-stack">
-            <button type="submit" className="btn btn-primary">Save & Restart</button>
+            <button type="submit" className="btn btn-primary" disabled={!!tokenError || !tokenValue}>Save & Restart</button>
             <button type="button" onClick={() => dispatch(setCurrentView('main'))} className="btn btn-outline">Cancel</button>
           </div>
         </form>

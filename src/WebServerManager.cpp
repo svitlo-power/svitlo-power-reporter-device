@@ -32,7 +32,7 @@ String WebServerManager::_getContentType(const String& path) {
 
 void WebServerManager::_setupRoutes() {
   _server.on("/api/app/config", HTTP_GET, [this](AsyncWebServerRequest *request) {
-    StaticJsonDocument<256> doc;
+    StaticJsonDocument<512> doc;
     doc["appVer"] = FW_VERSION;
     doc["fsVer"] = _storageManager.getFSVersion();
     doc["ssid"] = _configManager.getWifiSSID();
@@ -47,7 +47,7 @@ void WebServerManager::_setupRoutes() {
 
   _server.on("/api/app/config", HTTP_POST, [](AsyncWebServerRequest *request) {}, NULL, 
     [this](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
-      StaticJsonDocument<200> doc;
+      StaticJsonDocument<512> doc;
       DeserializationError error = deserializeJson(doc, data, len);
 
       if (error) {
@@ -93,7 +93,7 @@ void WebServerManager::_setupRoutes() {
 
   _server.on("/api/token/config", HTTP_POST, [](AsyncWebServerRequest *request) {}, NULL, 
     [this](AsyncWebServerRequest *request, uint8_t *data, size_t len, size_t index, size_t total) {
-      StaticJsonDocument<128> doc;
+      StaticJsonDocument<512> doc;
       DeserializationError error = deserializeJson(doc, data, len);
 
       if (error) {
