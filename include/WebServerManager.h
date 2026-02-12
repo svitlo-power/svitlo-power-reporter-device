@@ -3,22 +3,24 @@
 
 #include <Arduino.h>
 #include <ESPAsyncWebServer.h>
-#include <LittleFS.h>
 #include <ESPmDNS.h>
 #include "ConfigManager.h"
 #include "WiFiManager.h"
+#include "StorageManager.h"
 
 class WebServerManager {
   public:
-    WebServerManager(ConfigManager& config, WiFiManager& wifi);
+    WebServerManager(ConfigManager& config, WiFiManager& wifi, StorageManager& storage);
     bool begin();
     void stop();
 
   private:
-    AsyncWebServer server;
-    ConfigManager& configManager;
-    WiFiManager& wifiManager;
+    AsyncWebServer _server;
+    ConfigManager& _configManager;
+    WiFiManager& _wifiManager;
+    StorageManager& _storageManager;
     void _setupRoutes();
+    String _getContentType(const String& path);
 };
 
 #endif

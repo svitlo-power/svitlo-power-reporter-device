@@ -1,5 +1,5 @@
-#ifndef HTTPS_OTA_MANAGER_H
-#define HTTPS_OTA_MANAGER_H
+#ifndef HTTP_OTA_MANAGER_H
+#define HTTP_OTA_MANAGER_H
 
 #include <Arduino.h>
 #include <WiFi.h>
@@ -8,6 +8,7 @@
 #include <HTTPClient.h>
 #include <HTTPUpdate.h>
 #include <ArduinoJson.h>
+#include "StorageManager.h"
 
 class HttpOtaManager {
   public:
@@ -18,11 +19,12 @@ class HttpOtaManager {
     };
     typedef void (*OtaStateCallback)(OtaState state);
 
-    HttpOtaManager();
+    HttpOtaManager(StorageManager& storage);
     void checkForUpdates();
     void setStateCallback(OtaStateCallback cb);
   private:
     OtaStateCallback _stateCallback = nullptr;
+    StorageManager& _storageManager;
     void _setState(OtaState state);
 
     bool _fetchManifest(DynamicJsonDocument& doc);

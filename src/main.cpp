@@ -9,9 +9,10 @@
 #include "config.h"
 
 ConfigManager configMgr;
+StorageManager storageMgr;
 WiFiManager wifiMgr(configMgr);
-WebServerManager serverMgr(configMgr, wifiMgr);
-HttpOtaManager httpOtaMgr;
+WebServerManager serverMgr(configMgr, wifiMgr, storageMgr);
+HttpOtaManager httpOtaMgr(storageMgr);
 LedManager ledMgr(STATUS_LED_PIN, true);
 
 const char* ntpServer = "pool.ntp.org";
@@ -42,6 +43,11 @@ void onOtaStateChanged(HttpOtaManager::OtaState state) {
 void setup() {
   Serial.begin(115200);
   ledMgr.begin();
+
+  if (!storageMgr.begin()) {
+    Serial.println("[Main] Cannot initialize storage. Exiting.");
+    while(true) delay(500);
+  }
 
   if (!configMgr.begin()) {
     Serial.println("[Main] Error initializing Preferences");

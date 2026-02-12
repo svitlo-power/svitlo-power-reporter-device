@@ -37,12 +37,15 @@ The device is configured to check for updates on every reboot after connecting t
 
 Update the constants in `include/config.h`:
 - `FW_VERSION`: Increment this when you release a new firmware version.
-- `FS_VERSION`: Increment this when you release a new filesystem version.
 - `OTA_MANIFEST_URL`: The full URL to your `ota_manifest.json` on your HTTPS server.
+
+Update web version in `webapp/public/version.txt`:
+- file should only contain the 3-digit dot-separated version number
+- file should end with the newline (`\n`)
 
 ### Release Automation
 
-To simplify the update process, use the `release.py` script. It automatically updates the version numbers in `include/config.h` and generates the `ota_manifest.json` file.
+To simplify the update process, use the `release.py` script. It automatically updates the version numbers in `include/config.h` and `webapp/public/version.txt` and generates the `ota_manifest.json` file.
 
 ```bash
 python release.py \
@@ -52,7 +55,7 @@ python release.py \
 ```
 
 This command will:
-1.  Update `FW_VERSION` and `FS_VERSION` in `include/config.h`.
+1.  Update `FW_VERSION` in `include/config.h` and set `FS_VERSION` in `webapp/public/version.txt`.
 2.  Generate `ota_manifest.json` pointing to your server URL.
 
 ### Deployment Flow

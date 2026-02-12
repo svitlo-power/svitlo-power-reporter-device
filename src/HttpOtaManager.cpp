@@ -3,7 +3,7 @@
 #include <esp_partition.h>
 #include <spi_flash_mmap.h>
 
-HttpOtaManager::HttpOtaManager() {}
+HttpOtaManager::HttpOtaManager(StorageManager& storage): _storageManager(storage) {}
 
 void HttpOtaManager::setStateCallback(OtaStateCallback cb) {
   _stateCallback = cb;
@@ -30,11 +30,13 @@ void HttpOtaManager::checkForUpdates() {
   String newFsVersion = doc["fs_version"];
   String fsUrl = doc["fs_url"];
 
+  String fsVersion = _storageManager.getFSVersion();
+
   Serial.printf("[OTA]  Current FW: %s, New FW: %s\n", FW_VERSION, newFwVersion.c_str());
-  Serial.printf("[OTA]  Current FS: %s, New FS: %s\n", FS_VERSION, newFsVersion.c_str());
+  Serial.printf("[OTA]  Current FS: %s, New FS: %s\n", fsVersion, newFsVersion.c_str());
 
   bool updateFw = (newFwVersion != FW_VERSION && fwUrl.length() > 0);
-  bool updateFs = (newFsVersion != FS_VERSION && fsUrl.length() > 0);
+  bool updateFs = (newFsVersion != fsVersion && fsUrl.length() > 0);
 
   if (updateFs || updateFw) {
     _setState(OtaState::UPDATING);

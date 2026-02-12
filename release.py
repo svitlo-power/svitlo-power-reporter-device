@@ -5,7 +5,7 @@ import re
 import subprocess
 import shutil
 
-def update_config_h(config_path, fw_version, fs_version):
+def update_config_h(config_path, fw_version):
     if not os.path.exists(config_path):
         print(f"Error: {config_path} not found")
         return False
@@ -15,14 +15,25 @@ def update_config_h(config_path, fw_version, fs_version):
 
     # Update FW_VERSION
     content = re.sub(r'#define FW_VERSION ".*?"', f'#define FW_VERSION "{fw_version}"', content)
-    # Update FS_VERSION
-    content = re.sub(r'#define FS_VERSION ".*?"', f'#define FS_VERSION "{fs_version}"', content)
+
 
     with open(config_path, 'w') as f:
         f.write(content)
 
-    print(f"Updated {config_path} with FW version {fw_version} and FS version {fs_version}")
+    print(f"Updated {config_path} with FW version {fw_version}")
     return True
+
+def update_version_txt(version_path, fw_version):
+    if not os.path.exists(version_path):
+        print(f"Error: {version_path} not found")
+        return False
+
+    with open(version_path, 'w') as f:
+        f.write(fw_version + '\n')
+
+    print(f"Updated {version_path} with FW version {fw_version}")
+    return True
+
 
 def build_project():
     print("\n--- Step 2: Building Project ---")
@@ -61,33 +72,38 @@ if __name__ == "__main__":
     parser.add_argument('--fw-bin', default=os.path.join('.pio', 'build', 'esp32doit-devkit-v1', 'firmware.bin'), help='Path to firmware.bin')
     parser.add_argument('--fs-bin', default=os.path.join('.pio', 'build', 'esp32doit-devkit-v1', 'littlefs.bin'), help='Path to littlefs.bin')
     parser.add_argument('--config', default=os.path.join('include', 'config.h'), help='Path to config.h')
+    parser.add_argument('--versionfile', default=os.path.join('webapp', 'public', 'version.txt'), help='Path to version.txt')
     parser.add_argument('--out', default='ota_manifest.json', help='Output manifest filename')
     parser.add_argument('--ota-dir', default='ota', help='Output directory for OTA files')
     parser.add_argument('--no-build', default=False, help='Do not build the binary files')
 
     args = parser.parse_args()
 
-    # Step 1: Update version numbers in config.h
-    if update_config_h(args.config, args.fw_ver, args.fs_ver):
-        # Step 2: Build the project
-        if args.no_build or build_project():
-            # Step 3: Create OTA directory and generate manifest
-            os.makedirs(args.ota_dir, exist_ok=True)
-            manifest_path = os.path.join(args.ota_dir, args.out)
-            generate_manifest(args.fw_bin, args.fs_bin, args.fw_ver, args.fs_ver, args.url, manifest_path)
-            
-            # Step 4: Copy binaries to OTA directory
-            print("\n--- Step 4: Organizing OTA Files ---")
-            for bin_file in [args.fw_bin, args.fs_bin]:
-                if os.path.exists(bin_file):
-                    shutil.copy2(bin_file, args.ota_dir)
-                    print(f"Copied {bin_file} -> {args.ota_dir}/")
-                else:
-                    print(f"Warning: Binary not found: {bin_file}")
-            
-            print(f"\nSuccess! All release files are ready in the '{args.ota_dir}' folder.")
-            print(f"You can now upload the contents of '{args.ota_dir}/' to {args.url}")
+    # Step 1: Update fw version in config.h
+    if update_config_h(args.config, args.fw_ver):
+        # Step 2: Update fs version in version.txt
+        if update_version_txt(args.versionfile, args.fs_ver):
+            # Step 2: Build the project
+            if args.no_build or build_project():
+                # Step 3: Create OTA directory and generate manifest
+                os.makedirs(args.ota_dir, exist_ok=True)
+                manifest_path = os.path.join(args.ota_dir, args.out)
+                generate_manifest(args.fw_bin, args.fs_bin, args.fw_ver, args.fs_ver, args.url, manifest_path)
+                
+                # Step 4: Copy binaries to OTA directory
+                print("\n--- Step 4: Organizing OTA Files ---")
+                for bin_file in [args.fw_bin, args.fs_bin]:
+                    if os.path.exists(bin_file):
+                        shutil.copy2(bin_file, args.ota_dir)
+                        print(f"Copied {bin_file} -> {args.ota_dir}/")
+                    else:
+                        print(f"Warning: Binary not found: {bin_file}")
+                
+                print(f"\nSuccess! All release files are ready in the '{args.ota_dir}' folder.")
+                print(f"You can now upload the contents of '{args.ota_dir}/' to {args.url}")
+            else:
+                print("\nRelease process aborted due to build failure.")
         else:
-            print("\nRelease process aborted due to build failure.")
+            print("\nRelease process aborted due to version.txt update failure.")
     else:
-        print("\nRelease process aborted due to config update failure.")
+        print("\nRelease process aborted due to config.h update failure.")

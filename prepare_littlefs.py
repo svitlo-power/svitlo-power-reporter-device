@@ -42,6 +42,9 @@ def gzip_file(src, dst):
         with gzip.open(dst, "wb", compresslevel=9) as f_out:
             shutil.copyfileobj(f_in, f_out)
 
+def should_gzip_file(name):
+    return True if name != 'version.txt' else False
+
 def process_files():
     log("Gzipping files...")
     for root, _, files in os.walk(BUILD_DIR):
@@ -51,10 +54,16 @@ def process_files():
 
             src = os.path.join(root, name)
             rel = os.path.relpath(src, BUILD_DIR)
-            dst = os.path.join(DATA_DIR, rel) + ".gz"
+            dst = (
+                os.path.join(DATA_DIR, rel) + ".gz" if should_gzip_file(name)
+                else os.path.join(DATA_DIR, rel)
+            )
 
             os.makedirs(os.path.dirname(dst), exist_ok=True)
-            gzip_file(src, dst)
+            if should_gzip_file(name):
+                gzip_file(src, dst)
+            else:
+                shutil.copyfile(src, dst)
 
 def print_fs_usage():
     total = 0
