@@ -25,13 +25,14 @@ const appSlice = createSlice({
       .addCase(fetchAppData.rejected, (state) => {
         state.loading = false;
       })
-      .addCase(fetchAppData.fulfilled, (state, action: PayloadAction<AppState>) => {
-        state.appVer = action.payload.appVer;
-        state.fsVer = action.payload.fsVer;
-        state.ssid = action.payload.ssid;
-        state.token = action.payload.token;
-        state.wifiStatus = action.payload.wifiStatus;
-        state.wifiIp = action.payload.wifiIp;
+      .addCase(fetchAppData.fulfilled, (state, { payload }: PayloadAction<AppState>) => {
+        state.appVer = payload.appVer;
+        state.fsVer = payload.fsVer;
+        state.ssid = payload.ssid;
+        state.token = payload.token;
+        state.wifiStatus = payload.wifiStatus;
+        state.wifiIp = payload.wifiIp;
+        state.uptime = payload.uptime;
         state.loading = false;
       })
 });

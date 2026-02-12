@@ -5,7 +5,7 @@ import { ConfirmDialog } from './confirmDialog';
 import { useAppDispatch, useAppSelector } from '../stores/store';
 import { scanWifiNetworks, saveWifiConfig, saveTokenConfig, saveAllConfigs, resetDevice } from '../stores/thunks';
 import { setCurrentView } from '../stores/slices';
-import { pollAndRedirect } from '../utils/mdns';
+import { pollAndRedirect } from '../utils';
 
 export const SettingsForm: React.FC = () => {
   const dispatch = useAppDispatch();

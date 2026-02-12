@@ -39,6 +39,7 @@ void WebServerManager::_setupRoutes() {
     doc["token"] = _configManager.getReporterToken();
     doc["wifiStatus"] = _wifiManager.getStatus();
     doc["wifiIp"] = _wifiManager.getIP();
+    doc["uptime"] = (ulong)(millis() / 1000);
     String response;
     serializeJson(doc, response);
     request->send(200, "application/json", response);

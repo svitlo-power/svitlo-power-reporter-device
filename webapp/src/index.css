@@ -7,6 +7,8 @@
 
   --primary: #228be6;
   --primary-hover: #1c7ed6;
+  --danger: rgba(239, 68, 68, 0.2);
+  --danger-hover: rgba(236, 41, 41, 0.2);
   --bg: #f8f9fa;
   --card-bg: #ffffff;
   --text: #212529;
@@ -160,6 +162,17 @@ h4 {
 
 .btn-primary:active {
   transform: translateY(0);
+}
+
+.btn-danger {
+  background: var(--danger);
+  color: #ef4444;
+}
+
+.btn-danger:hover {
+  background: var(--danger-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(239, 68, 68, 0.2);
 }
 
 .btn-outline {

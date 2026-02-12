@@ -5,6 +5,7 @@ export type AppState = {
   token?: string;
   wifiStatus?: string;
   wifiIp?: string;
+  uptime?: number;
   loading: boolean;
   currentView: 'main' | 'wifi' | 'token' | 'connecting' | 'resetting';
 }
