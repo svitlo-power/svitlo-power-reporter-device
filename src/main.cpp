@@ -6,6 +6,7 @@
 #include "WebServerManager.h"
 #include "HttpOtaManager.h"
 #include "LedManager.h"
+#include "PingManager.h"
 #include "config.h"
 
 ConfigManager configMgr;
@@ -13,6 +14,7 @@ StorageManager storageMgr;
 WiFiManager wifiMgr(configMgr);
 WebServerManager serverMgr(configMgr, wifiMgr, storageMgr);
 HttpOtaManager httpOtaMgr(storageMgr);
+PingManager pingMgr(wifiMgr, storageMgr, configMgr);
 LedManager ledMgr(STATUS_LED_PIN, true);
 
 const char* ntpServer = "pool.ntp.org";
@@ -66,6 +68,7 @@ void setup() {
 void loop() {
   wifiMgr.handle();
   ledMgr.handle();
+  pingMgr.handle();
 
   if (wifiMgr.isAPMode()) {
     ledMgr.setMode(LedManager::MODE_AP);
