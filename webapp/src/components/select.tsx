@@ -8,6 +8,7 @@ interface SelectProps {
   options: {
     label: string;
     value: string;
+    disabled?: boolean;
   }[];
   disabled?: boolean;
   required?: boolean;
@@ -33,8 +34,8 @@ export const Select: React.FC<SelectProps> = ({ label, value, onChange, name, op
     };
   }, []);
 
-  const handleSelect = (val: string) => {
-    if (disabled) return;
+  const handleSelect = (val: string, optDisabled?: boolean) => {
+    if (disabled || optDisabled) return;
     onChange({ target: { value: val, name } });
     setIsOpen(false);
   };
@@ -58,8 +59,8 @@ export const Select: React.FC<SelectProps> = ({ label, value, onChange, name, op
           {options.map((opt) => (
             <li
               key={opt.value}
-              className={`custom-select-option ${opt.value === value ? 'selected' : ''}`}
-              onClick={() => handleSelect(opt.value)}
+              className={`custom-select-option ${opt.value === value ? 'selected' : ''} ${opt.disabled ? 'disabled' : ''}`}
+              onClick={() => handleSelect(opt.value, opt.disabled)}
             >
               {opt.label}
             </li>

@@ -209,6 +209,12 @@ h4 {
   background: var(--bg);
 }
 
+.custom-select-option.disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: transparent !important;
+}
+
 .custom-select-option.selected {
   background: rgba(34, 139, 230, 0.1);
   color: var(--primary);

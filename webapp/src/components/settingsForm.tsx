@@ -108,7 +108,7 @@ export const SettingsForm: React.FC = () => {
   };
 
   const wifiOptions = [
-    { label: scanning && networks.length === 0 ? 'Scanning...' : 'Select a network...', value: '' },
+    { label: scanning && networks.length === 0 ? 'Scanning...' : 'Select a network...', value: '', disabled: true },
     ...(ssid && !networks.some(n => n.ssid === ssid) ? [{ label: `${ssid} (Stored)`, value: ssid }] : []),
     ...networks.map(n => ({
       label: `${n.ssid} (${n.rssi} dBm)${n.secure ? ' 🔒' : ''}${n.ssid === ssid ? ' (Stored)' : ''}`,

@@ -140,7 +140,7 @@ DynamicJsonDocument WiFiManager::getScanResults() {
   DynamicJsonDocument doc(4096);
   JsonArray networks = doc.to<JsonArray>();
 
-  if (n > 0) {
+  if (n >= 0) {
     for (int i = 0; i < n; ++i) {
       JsonObject network = networks.createNestedObject();
       network["ssid"] = WiFi.SSID(i);
