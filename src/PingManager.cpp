@@ -29,9 +29,10 @@ void PingManager::sendPing() {
     http.addHeader("Authorization", "Bearer " + token);
   }
 
-  StaticJsonDocument<200> doc;
-  doc["app_version"] = FW_VERSION;
-  doc["fs_version"] = _storageMgr.getFSVersion();
+  StaticJsonDocument<256> doc;
+  doc["appVersion"] = FW_VERSION;
+  doc["fsVersion"] = _storageMgr.getFSVersion();
+  doc["macAddress"] = _wifiMgr.getMacAddress();
   doc["uptime"] = millis() / 1000;
 
   String requestBody;

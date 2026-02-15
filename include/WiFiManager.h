@@ -15,6 +15,7 @@ class WiFiManager {
     void handle();
     bool isConnected();
     String getIP();
+    String getMacAddress();
     String getStatus();
     bool isAPMode();
     void requestScan();

@@ -108,6 +108,10 @@ String WiFiManager::getIP() {
   return WiFi.softAPIP().toString();
 }
 
+String WiFiManager::getMacAddress() {
+  return WiFi.macAddress();
+}
+
 String WiFiManager::getStatus() {
   String status = "";
   if (_staConnected) {
