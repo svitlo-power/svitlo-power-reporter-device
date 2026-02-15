@@ -30,7 +30,7 @@ void PingManager::sendPing() {
   }
 
   StaticJsonDocument<256> doc;
-  doc["appVersion"] = FW_VERSION;
+  doc["fwVersion"] = FW_VERSION;
   doc["fsVersion"] = _storageMgr.getFSVersion();
   doc["macAddress"] = _wifiMgr.getMacAddress();
   doc["uptime"] = millis() / 1000;
