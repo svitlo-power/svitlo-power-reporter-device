@@ -159,7 +159,8 @@ void WebServerManager::_setupRoutes() {
   _server.on("/redirect", [redirectUrl](AsyncWebServerRequest *request) { request->redirect(redirectUrl); });
 
   _server.onNotFound([this](AsyncWebServerRequest *request) {
-    String path = request->url();
+    String url = request->url();
+    String path = url;
     if (path.endsWith("/")) path += "index.html";
 
     String gzPath = path + ".gz";
@@ -179,8 +180,12 @@ void WebServerManager::_setupRoutes() {
     }
 
     if (host != "192.168.4.1" && host != String(MDNS_HOSTNAME) + ".local") {
-      Serial.println("[Web] Captive Portal Redirect: " + request->url() + " Host: " + host);
+      Serial.println("[Web] Captive Portal Redirect: " + url + " Host: " + host);
       request->redirect("http://" + String(MDNS_HOSTNAME) + ".local/");
+    } else if (!url.startsWith("/api/") && _storageManager.exists("/index.html.gz")) {
+      AsyncWebServerResponse *response = request->beginResponse(_storageManager.getFS(), "/index.html.gz", "text/html");
+      response->addHeader("Content-Encoding", "gzip");
+      request->send(response);
     } else {
       request->send(404, "text/plain", "Not Found");
     }
