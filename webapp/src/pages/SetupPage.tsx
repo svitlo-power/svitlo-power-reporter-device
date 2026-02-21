@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { jwtDecode } from 'jwt-decode';
-import { Input } from '../components/input';
-import { TextArea } from '../components/textArea';
-import { Select } from '../components/select';
+import { Input, TextArea, Select, FormCard } from '../components';
 import { useAppDispatch, useAppSelector } from '../stores/store';
 import { saveAllConfigs, scanWifiNetworks } from '../stores/thunks';
 import { setCurrentView } from '../stores/slices/app';
@@ -15,15 +13,15 @@ export const SetupPage: React.FC = () => {
   const { networks, loading: scanning } = useAppSelector(state => state.wifi);
   const { ssid, token } = useAppSelector(state => state.app);
 
-  useEffect(() => {
-    dispatch(scanWifiNetworks());
-  }, [dispatch]);
-
   const [ssidValue, setSsid] = useState(ssid || '');
   const [passwordValue, setPassword] = useState('');
   const [tokenValue, setToken] = useState(token || '');
   const [tokenError, setTokenError] = useState<string | null>(null);
   const [tokenUser, setTokenUser] = useState<string | null>(null);
+
+  useEffect(() => {
+    dispatch(scanWifiNetworks());
+  }, [dispatch]);
 
   useEffect(() => {
     if (!tokenValue) {
@@ -64,19 +62,16 @@ export const SetupPage: React.FC = () => {
   const wifiOptions = getWifiOptions(scanning, networks, ssid);
 
   return (
-    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
-      <form onSubmit={handleSaveAll} className="glass-card" style={{ width: '100%', maxWidth: '400px' }}>
-        <h2 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Device Setup</h2>
-        <Select label="WiFi Network" options={wifiOptions} value={ssidValue} onChange={(e) => setSsid(e.target.value)} required />
-        <Input label="WiFi Password" placeholder="Enter password" type="password" value={passwordValue} onChange={(e) => setPassword(e.target.value)} required />
-        <div className="divider" />
-        <TextArea label="Reporter Token" placeholder="Enter your device token" rows={5} value={tokenValue} onChange={(e) => setToken(e.target.value)} required />
-        {tokenError && <div style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '-0.75rem', marginBottom: '1rem' }}>{tokenError}</div>}
-        {tokenUser && !tokenError && <div style={{ color: 'var(--primary)', fontSize: '0.75rem', marginTop: '-0.75rem', marginBottom: '1rem' }}>User: {tokenUser}</div>}
-        <div className="button-stack">
-          <button type="submit" className="btn btn-primary" disabled={scanning || !!tokenError || !ssidValue || !passwordValue || !tokenValue}>Complete Setup</button>
-        </div>
-      </form>
-    </div>
+    <FormCard title="Device Setup" onSubmit={handleSaveAll}>
+      <Select label="WiFi Network" options={wifiOptions} value={ssidValue} onChange={(e) => setSsid(e.target.value)} required />
+      <Input label="WiFi Password" placeholder="Enter password" type="password" value={passwordValue} onChange={(e) => setPassword(e.target.value)} required />
+      <div className="divider" />
+      <TextArea label="Reporter Token" placeholder="Enter your device token" rows={5} value={tokenValue} onChange={(e) => setToken(e.target.value)} required />
+      {tokenError && <div style={{ color: '#ef4444', fontSize: '0.75rem', marginTop: '-0.75rem', marginBottom: '1rem' }}>{tokenError}</div>}
+      {tokenUser && !tokenError && <div style={{ color: 'var(--primary)', fontSize: '0.75rem', marginTop: '-0.75rem', marginBottom: '1rem' }}>User: {tokenUser}</div>}
+      <div className="button-stack">
+        <button type="submit" className="btn btn-primary" disabled={scanning || !!tokenError || !ssidValue || !passwordValue || !tokenValue}>Complete Setup</button>
+      </div>
+    </FormCard>
   );
 };

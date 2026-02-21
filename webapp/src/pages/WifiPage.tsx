@@ -1,12 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Input } from '../components/input';
-import { Select } from '../components/select';
+import { Input, Select, FormCard } from '../components';
 import { useAppDispatch, useAppSelector } from '../stores/store';
 import { scanWifiNetworks, saveWifiConfig } from '../stores/thunks';
 import { setCurrentView } from '../stores/slices/app';
 import { pollAndRedirect, getWifiOptions } from '../utils';
-import { useEffect } from 'react';
 
 export const WifiPage: React.FC = () => {
   const dispatch = useAppDispatch();
@@ -39,16 +37,13 @@ export const WifiPage: React.FC = () => {
   const wifiOptions = getWifiOptions(scanning, networks, ssid);
 
   return (
-    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
-      <form onSubmit={handleSaveWifi} className="glass-card" style={{ width: '100%', maxWidth: '400px' }}>
-        <h2 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Change WiFi</h2>
-        <Select label="WiFi Network" options={wifiOptions} value={ssidValue} onChange={(e) => setSsid(e.target.value)} required />
-        <Input label="WiFi Password" placeholder="Enter password" type="password" value={passwordValue} onChange={(e) => setPassword(e.target.value)} required />
-        <div className="button-stack">
-          <button type="submit" className="btn btn-primary" disabled={scanning || !ssidValue || !passwordValue}>Save & Restart</button>
-          <button type="button" onClick={() => navigate('/')} className="btn btn-outline">Cancel</button>
-        </div>
-      </form>
-    </div>
+    <FormCard title="Change WiFi" onSubmit={handleSaveWifi}>
+      <Select label="WiFi Network" options={wifiOptions} value={ssidValue} onChange={(e) => setSsid(e.target.value)} required />
+      <Input label="WiFi Password" placeholder="Enter password" type="password" value={passwordValue} onChange={(e) => setPassword(e.target.value)} required />
+      <div className="button-stack">
+        <button type="submit" className="btn btn-primary" disabled={scanning || !ssidValue || !passwordValue}>Save & Restart</button>
+        <button type="button" onClick={() => navigate('/')} className="btn btn-outline">Cancel</button>
+      </div>
+    </FormCard>
   );
 };

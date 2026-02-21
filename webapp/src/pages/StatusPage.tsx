@@ -1,28 +1,16 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ConfirmDialog } from '../components/confirmDialog';
-import { useAppDispatch, useAppSelector } from '../stores/store';
-import { setCurrentView } from '../stores/slices/app';
-import { resetDevice } from '../stores/thunks';
+import { useAppSelector } from '../stores/store';
+import { ConfirmDialog, Card } from '../components';
 
 export const StatusPage: React.FC = () => {
   const navigate = useNavigate();
-  const dispatch = useAppDispatch();
   const { ssid, wifiStatus, wifiIp } = useAppSelector(state => state.app);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
 
-  const handleResetConfirm = async () => {
-    setShowResetConfirm(false);
-    dispatch(setCurrentView('resetting'));
-    await dispatch(resetDevice());
-    navigate('/system');
-  };
-
   return (
-    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem' }}>
-      <div className="glass-card" style={{ width: '100%', maxWidth: '400px' }}>
-        <h2 style={{ marginBottom: '1.5rem', fontSize: '1.25rem' }}>Device Status</h2>
-
+    <>
+      <Card title="Status">
         <div style={{ marginBottom: '2rem' }}>
           <div style={{ fontSize: '0.875rem', color: 'var(--text-dimmed)', marginBottom: '0.25rem' }}>Selected WiFi</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.25rem' }}>
@@ -54,17 +42,24 @@ export const StatusPage: React.FC = () => {
           <div className="divider" style={{ margin: '1rem 0' }} />
           <button type="button" onClick={() => setShowResetConfirm(true)} className="btn btn-outline" style={{ color: '#fa5252' }}>Reset Device</button>
         </div>
-      </div>
+      </Card>
 
       <ConfirmDialog
         isOpen={showResetConfirm}
         title="Reset Device?"
-        message="Are you sure you want to reset the device? All settings will be lost and you will need to reconfigure the device."
-        confirmLabel="Reset Device"
+        message={"This will wipe all settings and restart " +
+          "the device into setup mode. Are you sure?"}
         isDangerous
-        onConfirm={handleResetConfirm}
+        confirmLabel='Reset device'
+        onConfirm={async () => {
+          const { resetDevice } = await import('../stores/thunks');
+          const thunk = resetDevice();
+          const { store } = await import('../stores/store');
+          store.dispatch(thunk as any);
+          navigate('/system');
+        }}
         onCancel={() => setShowResetConfirm(false)}
       />
-    </div>
+    </>
   );
 };
