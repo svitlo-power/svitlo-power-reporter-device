@@ -6,3 +6,4 @@ export * from './confirmDialog';
 export * from './textArea';
 export * from './card';
 export * from './formCard';
+export * from './mainLayout';
